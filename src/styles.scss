@@ -1,0 +1,35 @@
+/* You can add global styles to this file, and also import other style files */
+@import "~bootstrap/dist/css/bootstrap.css";
+@import "~leaflet/dist/leaflet.css";
+
+.nomargin{
+    margin:  0px !important;  
+}
+.nopadding{
+    padding:  0px !important;  
+}
+.ngx-slider-inner-tooltip{
+    color: #0e6b80 !important;
+  }
+  .ngx-slider .ngx-slider-tick-legend{
+    color: #087140;
+    font-weight: 600;
+  }
+  .ngx-slider .ngx-slider-pointer{
+      outline: none;
+  }
+  .ngx-slider .ngx-slider-pointer{
+    background-color: #20758c !important;
+  }
+  .ngx-slider .ngx-slider-pointer.ngx-slider-active:after{
+    background-color: #20758c !important;
+  }
+  .btn-primary{
+    background-color: #0e6b80 !important;
+    border-color: #0e6b80 !important;
+  }
+  .modal.show .modal-dialog{
+    max-width: fit-content !important;
+    min-width: fit-content !important;
+    width: 100% !important;
+  }
