@@ -1,3 +1,9 @@
+<ng-snotify></ng-snotify>
+<ngx-spinner bdOpacity="1" bdColor="rgba(51,51,51,0.7)" size="medium" color="#ffffff" type="ball-clip-rotate-multiple"
+      fullScreen="true">
+      <p style="color: white;margin-top:20px">Just a moment...</p>
+  </ngx-spinner>
+  <router-outlet>
 <div style="height: 100vh;">
   <div class="col-lg-12 col-md-12 col-sm-12 nomargin nopadding" style="    height: 50px;
   text-align: center;
@@ -24,7 +30,7 @@
         <ng-multiselect-dropdown
         [placeholder]="'Select County 1'"
         [settings]="dropdownSettings"
-        [data]="dropdownList"
+        [data]="counties"
         [(ngModel)]="selectedItems"
         (onSelect)="onItemSelect($event)"
         style="    display: block;
@@ -36,7 +42,7 @@
         <ng-multiselect-dropdown
         [placeholder]="'Select County 2'"
         [settings]="dropdownSettings2"
-        [data]="dropdownList2"
+        [data]="counties"
         [(ngModel)]="selectedItems2"
         (onSelect)="onItemSelect2($event)"
         style="    display: block;
@@ -48,7 +54,7 @@
         <ng-multiselect-dropdown
         [placeholder]="'Select Industry Sector'"
         [settings]="dropdownSettings_industries"
-        [data]="dropdownList_industries"
+        [data]="industries"
         [(ngModel)]="selectedItems_industries"
         (onSelect)="onItemSelect_industries($event)"
         style="    display: block;

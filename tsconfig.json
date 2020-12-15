@@ -6,6 +6,7 @@
 */
 {
   "files": [],
+  "noImplicitAny": false,
   "references": [
     {
       "path": "./tsconfig.app.json"

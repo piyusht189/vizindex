@@ -8,7 +8,11 @@ import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 import { NgApexchartsModule } from "ng-apexcharts";
 import { NgxSliderModule } from '@angular-slider/ngx-slider';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
-
+import { HttpClientModule } from '@angular/common/http';
+import { ToastDefaults, SnotifyService, SnotifyModule } from 'ng-snotify';
+import { notifyService } from '../services/snotify';
+import { NgxSpinnerModule } from 'ngx-spinner';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -20,9 +24,13 @@ import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
     NgApexchartsModule,
     NgxSliderModule,
     NgbModule,
+    HttpClientModule,
+    SnotifyModule,
+    NgxSpinnerModule,
+    BrowserAnimationsModule,
     NgMultiSelectDropDownModule.forRoot()
   ],
-  providers: [],
+  providers: [{ provide: "SnotifyToastConfig", useValue: ToastDefaults }, SnotifyService, notifyService],
   bootstrap: [AppComponent],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA,

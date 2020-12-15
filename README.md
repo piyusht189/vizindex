@@ -1,4 +1,9 @@
-# Vizindex
+# Team4 - Vizindex
+
+Covid19 Impact on Economy
+
+Giray Tandogan, Mohamed Aymane Zizi, Piyush Hemant Talele
+
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.0.2.
 

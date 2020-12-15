@@ -2,7 +2,9 @@ import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { IDropdownSettings } from 'ng-multiselect-dropdown';
 import * as L from 'leaflet';
 import { Options } from '@angular-slider/ngx-slider';
+import { map, take } from 'rxjs/operators';
 import {NgbModal, ModalDismissReasons} from '@ng-bootstrap/ng-bootstrap';
+import { NgxSpinnerService } from 'ngx-spinner';
 
 import {
   ChartComponent,
@@ -17,6 +19,8 @@ import {
   ApexTitleSubtitle,
   ApexLegend
 } from "ng-apexcharts";
+import { HttpClient } from '@angular/common/http';
+import { notifyService } from '../services/snotify';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -42,33 +46,17 @@ export class AppComponent implements OnInit, AfterViewInit{
   private map;
   closeResult: string;
   showGraph = false;
+  counties = [];
+  industries = [];
   @ViewChild("chart") chart: ChartComponent;
   public chartOptions: Partial<ChartOptions>;
-  dropdownList = [
-    { item_id: 1, item_text: 'Alabama' },
-    { item_id: 2, item_text: 'Arizona' },
-    { item_id: 3, item_text: 'California' },
-    { item_id: 4, item_text: 'New York' }
-  ];
-  dropdownList2 = [
-    { item_id: 1, item_text: 'Alabama' },
-    { item_id: 2, item_text: 'Arizona' },
-    { item_id: 3, item_text: 'California' },
-    { item_id: 4, item_text: 'New York' }
-  ];
-  dropdownList_industries = [
-    { item_id: 1, item_text: 'Agriculture' },
-    { item_id: 2, item_text: 'Mining' },
-    { item_id: 3, item_text: 'IT' },
-    { item_id: 4, item_text: 'Manufacturing' }
-  ];
   selectedItems = [];
   selectedItems2 = [];
   selectedItems_industries = [];
   dropdownSettings : IDropdownSettings = {
     singleSelection: true,
-    idField: 'item_id',
-    textField: 'item_text',
+    idField: 'Key',
+    textField: 'Desc',
     selectAllText: 'Select All',
     unSelectAllText: 'UnSelect All',
     itemsShowLimit: 1,
@@ -76,8 +64,8 @@ export class AppComponent implements OnInit, AfterViewInit{
   };
   dropdownSettings2 : IDropdownSettings = {
     singleSelection: true,
-    idField: 'item_id',
-    textField: 'item_text',
+    idField: 'Key',
+    textField: 'Desc',
     selectAllText: 'Select All',
     unSelectAllText: 'UnSelect All',
     itemsShowLimit: 1,
@@ -86,8 +74,8 @@ export class AppComponent implements OnInit, AfterViewInit{
 
   dropdownSettings_industries : IDropdownSettings = {
     singleSelection: true,
-    idField: 'item_id',
-    textField: 'item_text',
+    idField: 'key',
+    textField: 'desc',
     selectAllText: 'Select All',
     unSelectAllText: 'UnSelect All',
     itemsShowLimit: 1,
@@ -113,11 +101,52 @@ export class AppComponent implements OnInit, AfterViewInit{
     ],
     showTicks: true,
   };
-  constructor(private modalService: NgbModal){
+  constructor(private modalService: NgbModal, public http: HttpClient, public notify: notifyService, public spinner: NgxSpinnerService){
 
     
   }
   ngOnInit(){
+    this.spinner.show();
+    this.http.get('https://apps.bea.gov/api/data/?UserID=5AD9AF84-851D-4C9F-BB3D-FE0EB5759988&method=GetParameterValuesFiltered&datasetname%20=Regional&TargetParameter=GeoFips&TableName=CAINC4&LineCode=10&ResultFormat=json').pipe(map(data => {
+      if(data['BEAAPI']){
+        if(data['BEAAPI']['Results']){
+          if(data['BEAAPI']['Results']['ParamValue']){
+            this.counties = data['BEAAPI']['Results']['ParamValue'];
+            this.http.get('https://apps.bea.gov/api/data/?&UserID=5AD9AF84-851D-4C9F-BB3D-FE0EB5759988&method=GetParameterValues&DataSetName=MNE&ParameterName=Industry&ResultFormat=json').pipe(map(data => {
+              this.spinner.hide();
+               if(data['BEAAPI']){
+                 if(data['BEAAPI']['Results']){
+                   if(data['BEAAPI']['Results']['ParamValue']){
+                     this.industries = data['BEAAPI']['Results']['ParamValue'];
+                   }else{
+                     this.notify.onError("Error", "Error in api call");
+                   }
+                 }else{
+                   this.notify.onError("Error", "Error in api call");
+                 }
+               }else{
+                 this.notify.onError("Error", "Error in api call");
+               }
+            })).subscribe(result => {
+            });
+          }else{
+            this.spinner.hide();
+            this.notify.onError("Error", "Error in api call");
+          }
+        }else{
+          this.spinner.hide();
+          this.notify.onError("Error", "Error in api call");
+        }
+      }else{
+        this.spinner.hide();
+        this.notify.onError("Error", "Error in api call");
+      }
+   })).subscribe(result => {
+   });
+
+
+  
+   
     
   }
   ngAfterViewInit(){
@@ -202,13 +231,20 @@ export class AppComponent implements OnInit, AfterViewInit{
   onItemSelect2(item: any) {
     console.log(item);
   }
+  checker(){
+    console.log(this.selectedItems, this.selectedItems)
+    if(JSON.stringify(this.selectedItems) === JSON.stringify(this.selectedItems2)){
+      this.selectedItems2 = [];
+      this.notify.onError("Error","Both counties cannot be same!")
+    }
+  }
   onItemSelect_industries(item: any) {
     console.log(item);
   }
   initMap(): void {
     this.map = L.map('map', {
       center: [ 39.8282, -98.5795 ],
-      zoom: 3
+      zoom: 4
     });
     const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
