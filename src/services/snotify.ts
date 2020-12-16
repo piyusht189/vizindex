@@ -11,7 +11,7 @@ export class notifyService {
     style = "material";
     title = "Snotify title!";
     body = "Lorem ipsum dolor sit amet!";
-    timeout = 5000;
+    timeout = 8000;
     timeoutLong = 15000;
     timeoutLongLong = 180000;
     position: SnotifyPosition = SnotifyPosition.rightTop;

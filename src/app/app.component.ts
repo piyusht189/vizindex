@@ -48,6 +48,10 @@ export class AppComponent implements OnInit, AfterViewInit{
   showGraph = false;
   counties = [];
   industries = [];
+  maxBounds = L.latLngBounds(
+    L.latLng(26.970598, -127.811379), 
+    L.latLng(45.023476, -55.705283), 
+  );
   @ViewChild("chart") chart: ChartComponent;
   public chartOptions: Partial<ChartOptions>;
   selectedItems = [];
@@ -111,7 +115,9 @@ export class AppComponent implements OnInit, AfterViewInit{
       if(data['BEAAPI']){
         if(data['BEAAPI']['Results']){
           if(data['BEAAPI']['Results']['ParamValue']){
-            this.counties = data['BEAAPI']['Results']['ParamValue'];
+            this.counties = data['BEAAPI']['Results']['ParamValue'].filter(e => {
+                  return e.Key.includes('000');
+            });
             this.http.get('https://apps.bea.gov/api/data/?&UserID=5AD9AF84-851D-4C9F-BB3D-FE0EB5759988&method=GetParameterValues&DataSetName=MNE&ParameterName=Industry&ResultFormat=json').pipe(map(data => {
               this.spinner.hide();
                if(data['BEAAPI']){
@@ -225,6 +231,17 @@ export class AppComponent implements OnInit, AfterViewInit{
       this.showGraph = true;
     },500)
   }
+  visualize(){
+    this.notify.onSuccess("Dummy Success", "For positive impacts, positive drastic change in GDP etc.")
+    setTimeout(() => {
+      this.notify.onInfo("Dummy Information", "For any other information")
+      setTimeout(() => {
+        this.notify.onError("Dummy Error", "For negative impacts, negative drastic change in GDP etc.")
+      },2000)
+    },2000)
+    
+   
+  }
   onItemSelect(item: any) {
     console.log(item);
   }
@@ -243,15 +260,25 @@ export class AppComponent implements OnInit, AfterViewInit{
   }
   initMap(): void {
     this.map = L.map('map', {
-      center: [ 39.8282, -98.5795 ],
-      zoom: 4
-    });
-    const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
+      //center: [ 39.8282, -98.5795 ],
+      //zoom: 4
+      'center': [0, 0],
+      'zoom': 4,
+      'maxBounds': this.maxBounds
+    }).fitBounds(this.maxBounds);
+     const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 7,
+        minZoom: 4,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       });
 
       tiles.addTo(this.map);
+      
+      setTimeout(() => {
+        this.map.setMaxBounds(this.maxBounds);
+        this.map.fitBounds(this.maxBounds);
+        this.map.setZoom(4);
+      },1000)
   }
 
   open(content) {
