@@ -339,7 +339,7 @@ export class AppComponent implements OnInit, AfterViewInit{
       },
       yaxis: {
         title: {
-          text: "Billions of Dollars"
+          text: "Dollars"
         },
         min: 5,
         max: 40
@@ -495,7 +495,7 @@ export class AppComponent implements OnInit, AfterViewInit{
     if(arr1){
       info.update = function (props) {
         this._div.innerHTML = ('<h4>US Industrial Sectors & Covid Data</h4><h6>For ' + contxt.selected_industries.Key + '</h6>') +  (props ?
-            '<b><h6>State: ' + props.name + '</h6></b>' + '<strong>$' + parseFloat(''+props.revenue).toFixed(2).toLocaleString() + ' billion net worth.</strong><br>' + props.total_positive.toLocaleString() + ' total positive cases.<br>' + props.total_deaths.toLocaleString() + ' total deaths.<br>' + props.total_recovered.toLocaleString() + ' total recoveries.<br>' + props.total_tests_done.toLocaleString() + ' total tests done.<br>'
+            '<b><h6>State: ' + props.name + '</h6></b>' + '<strong>$' + parseFloat(''+props.revenue).toFixed(2).toLocaleString() + ' net worth.</strong><br>' + props.total_positive.toLocaleString() + ' total positive cases.<br>' + props.total_deaths.toLocaleString() + ' total deaths.<br>' + props.total_recovered.toLocaleString() + ' total recoveries.<br>' + props.total_tests_done.toLocaleString() + ' total tests done.<br>'
             : 'Hover over a state');
        };
     }else{
@@ -515,7 +515,7 @@ export class AppComponent implements OnInit, AfterViewInit{
     legend.onAdd = function (map) {
       if(arr1){
           var div = L.DomUtil.create('div', 'info legend'),
-          grades = [0,3,4,5,6,7,8,9,10,11,12,13,14,15],
+          grades = [0,10000,20000,30000,40000,50000,70000,90000,110000,140000,200000,500000,1000000,10000000],
           labels = [];
       }else{
           var div = L.DomUtil.create('div', 'info legend'),
@@ -526,7 +526,7 @@ export class AppComponent implements OnInit, AfterViewInit{
       for (var i = 0; i < grades.length; i++) {
         if(i == 0){
           if(arr1){
-            div.innerHTML += '<strong>Net worth in billions($)</strong><br>';
+            div.innerHTML += '<strong>Net worth in dollars</strong><br>';
           }else{
             div.innerHTML += '<strong>Positive Cases</strong><br>';
           }
@@ -567,19 +567,19 @@ export class AppComponent implements OnInit, AfterViewInit{
                       '#d1fdff';
   }
   getColor_Ind(d) {
-    return d > 15  ? '#00080a' :
-           d > 14  ? '#002229' :
-           d > 13  ? '#003945' :
-           d > 12   ? '#015c6e' :
-           d > 11   ? '#029ebd' :
-           d > 10   ? '#04b1d4' :
-           d > 9   ? '#19c1e3' :
-           d > 8   ? '#39cfed' :
-           d > 7   ? '#39deed' :
-           d > 6   ? '#58e8f5' :
-           d > 5   ? '#75eef0' :
-           d > 4   ? '#84f3f5' :
-           d > 3   ? '#b3fdff' :
+    return d > 10000000  ? '#00080a' :
+           d > 1000000  ? '#002229' :
+           d > 500000  ? '#003945' :
+           d > 200000   ? '#015c6e' :
+           d > 140000   ? '#029ebd' :
+           d > 110000   ? '#04b1d4' :
+           d > 90000   ? '#19c1e3' :
+           d > 70000   ? '#39cfed' :
+           d > 50000   ? '#39deed' :
+           d > 40000   ? '#58e8f5' :
+           d > 30000   ? '#75eef0' :
+           d > 20000   ? '#84f3f5' :
+           d > 10000   ? '#b3fdff' :
                       '#d1fdff';
   }
   style(feature) {
