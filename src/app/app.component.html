@@ -28,10 +28,9 @@
         margin-top: 15px;">Visualization Input</a>
 
         <ng-multiselect-dropdown
-        [placeholder]="'Select State 1 (From API now)'"
+        [placeholder]="'Select State 1'"
         [settings]="dropdownSettings"
-        [data]="counties"
-        [(ngModel)]="selectedItems"
+        [data]="states1"
         (onSelect)="onItemSelect($event)"
         style="    display: block;
         padding: 0px 30px;
@@ -40,10 +39,9 @@
         </ng-multiselect-dropdown>
 
         <ng-multiselect-dropdown
-        [placeholder]="'Select State 2 (From API now)'"
+        [placeholder]="'Select State 2'"
         [settings]="dropdownSettings2"
-        [data]="counties"
-        [(ngModel)]="selectedItems2"
+        [data]="states2"
         (onSelect)="onItemSelect2($event)"
         style="    display: block;
         padding: 0px 30px;
@@ -52,10 +50,9 @@
         </ng-multiselect-dropdown>
 
         <ng-multiselect-dropdown
-        [placeholder]="'Select Industry Sector (From API now)'"
+        [placeholder]="'Select Industry Sector'"
         [settings]="dropdownSettings_industries"
         [data]="industries"
-        [(ngModel)]="selectedItems_industries"
         (onSelect)="onItemSelect_industries($event)"
         style="    display: block;
         padding: 0px 30px;
@@ -66,12 +63,17 @@
 
         <button (click)="visualize()" type="button" class="btn btn-primary" style="    margin: auto;
         display: block;
-        width: 86%;padding: 10px;">Visualize! (Next Step)</button>
+        width: 86%;padding: 10px;">Visualize Industrial + Covid Data!</button>
+
+        <button (click)="visualize_covid()" type="button" class="btn btn-primary" style="    margin: auto;
+        display: block;
+        width: 86%;    margin-top: 20px;
+    padding: 10px;">Visualize Covid Data!</button>
 
         <button type="button" (click)="open(mymodal)" class="btn btn-primary" style="    margin: auto;
         display: block;
         width: 86%;    margin-top: 20px;
-    padding: 10px;">Full Overview Visualization</button>
+    padding: 10px;">Full Overview Heatmap Visualization</button>
 
     </div>
     <div class="col-lg-9 col-9 nopadding" style="height: calc(100vh - 50px);">
@@ -79,13 +81,34 @@
           <div id="map"></div>
           <div style="position: absolute;
           z-index: 999;
-          width: 45%;
+          width: 60%;
           margin: auto;
-          bottom: 15px;
+          bottom: 25px;
           left: 18px;"> 
-              <ngx-slider [(value)]="value" [options]="options"></ngx-slider>
+              <ngx-slider [(value)]="slider_value" [options]="options" (userChangeEnd)="onUserChangeEnd($event)"></ngx-slider>
           </div>
-          <div style="    position: absolute;
+
+          <!--div style="position: absolute;
+          z-index: 999;
+          width: auto;
+          margin: auto;
+          top: 10px;
+          right: 285px;"> 
+              <select [(ngModel)]="projection_type" [ngModelOptions]="{standalone: true}" style="background: #0e6b80d6;
+              padding: 7px 9px;
+              border-radius: 7px;
+              font-size: 0.9em;
+              border: 2px solid #0e6b80;
+              color: #ffffff;
+              width: 256px;
+              outline: none;">
+                <option [value]="'c'" [selected]="projection_type == 'c'">Covid</option>
+                <option [value]="'i'" [selected]="projection_type == 'i'">Industrial</option>
+              </select>
+          </div-->
+
+
+          <div *ngIf="state1_compare && state2_compare && industry_compare" style="    position: absolute;
           top: 90px;
           z-index: 999;
           left: 0;
@@ -98,28 +121,28 @@
               <p style="margin: 0;
               font-weight: 700;
               color: #0c6b80;
-              font-size: 1.1em;">ALABAMA</p>
+              font-size: 1.1em;">{{ state1_compare }}</p>
               <p style="font-size: 0.8em;
               font-weight: 300;
               color: #0b417d;
-              margin: 0;">2019(Q1) to 2020(Q1)</p>
-              <p style="color: #d03636;
+              margin: 0;">{{ state_quart }}</p>
+              <p style="
               font-size: 1.1em;
-              font-weight: 400;margin: 0;">-10<span style="font-size: 0.7em;">%</span></p>
+              font-weight: 400;margin: 0;" [class.green]="state1_diff >= 0" [class.red]="state1_diff < 0">{{ state1_diff > 0 ? "+" + state1_diff : state1_diff }}<span style="font-size: 0.7em;">%</span></p>
             </div>
             <div style="padding: 10px;    border: 1px solid #45adc3;
             background: #bacdd48a;">
                 <p style="margin: 0;
                 font-weight: 700;
                 color: #0c6b80;
-                font-size: 1.1em;">TEXAS</p>
+                font-size: 1.1em;">{{ state2_compare }}</p>
                 <p style="font-size: 0.8em;
                 font-weight: 300;
                 color: #0b417d;
-                margin: 0;">2019(Q1) to 2020(Q1)</p>
-                <p style="color: #0c8a50;
+                margin: 0;">{{ state_quart }}</p>
+                <p style="
                 font-size: 1.1em;
-                font-weight: 400;margin: 0;">+23<span style="font-size: 0.7em;">%</span></p>
+                font-weight: 400;margin: 0;" [class.green]="state2_diff >= 0" [class.red]="state2_diff < 0">{{ state2_diff > 0 ? "+" + state2_diff : state2_diff }}<span style="font-size: 0.7em;">%</span></p>
               </div>
           </div>
       </div>

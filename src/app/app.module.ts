@@ -13,7 +13,14 @@ import { ToastDefaults, SnotifyService, SnotifyModule } from 'ng-snotify';
 import { notifyService } from '../services/snotify';
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-
+import { StoreModule } from '@ngrx/store';
+import { StoreDevtoolsModule } from "@ngrx/store-devtools";
+import { environment } from '../environments/environment';
+import { EffectsModule } from "@ngrx/effects";
+import { EFFECTS } from "./app.effects";
+import { appReducers } from "./app.reducers";
+import { VizIndexHttpService } from './services/vizindex-http.service';
+import { ProjectService } from './services/project_service';
 @NgModule({
   declarations: [
     AppComponent
@@ -28,9 +35,16 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     SnotifyModule,
     NgxSpinnerModule,
     BrowserAnimationsModule,
-    NgMultiSelectDropDownModule.forRoot()
+    NgMultiSelectDropDownModule.forRoot(),
+    EffectsModule.forRoot(EFFECTS),
+    StoreModule.forRoot(appReducers),
+    StoreDevtoolsModule.instrument({
+      name: "VizIndex NgRx Store DevTools",
+      maxAge: 100,
+      logOnly: environment.production
+  }),
   ],
-  providers: [{ provide: "SnotifyToastConfig", useValue: ToastDefaults }, SnotifyService, notifyService],
+  providers: [{ provide: "SnotifyToastConfig", useValue: ToastDefaults }, SnotifyService, notifyService, VizIndexHttpService, ProjectService],
   bootstrap: [AppComponent],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA,
