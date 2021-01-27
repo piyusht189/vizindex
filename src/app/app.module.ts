@@ -5,7 +5,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
-import { NgApexchartsModule } from "ng-apexcharts";
 import { NgxSliderModule } from '@angular-slider/ngx-slider';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import { HttpClientModule } from '@angular/common/http';
@@ -21,6 +20,7 @@ import { EFFECTS } from "./app.effects";
 import { appReducers } from "./app.reducers";
 import { VizIndexHttpService } from './services/vizindex-http.service';
 import { ProjectService } from './services/project_service';
+import { ChartsModule } from 'ng2-charts';
 @NgModule({
   declarations: [
     AppComponent
@@ -28,13 +28,13 @@ import { ProjectService } from './services/project_service';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    NgApexchartsModule,
     NgxSliderModule,
     NgbModule,
     HttpClientModule,
     SnotifyModule,
     NgxSpinnerModule,
     BrowserAnimationsModule,
+    ChartsModule,
     NgMultiSelectDropDownModule.forRoot(),
     EffectsModule.forRoot(EFFECTS),
     StoreModule.forRoot(appReducers),

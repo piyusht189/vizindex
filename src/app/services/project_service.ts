@@ -24,6 +24,14 @@ export class ProjectService {
         );
     }
 
+    public getAllCovidGraph(): Observable<any> {
+        return this.httpService.httpGet("../../assets/data/agg_covid.json").pipe(
+            map(response => {
+                return response;
+            })
+        );
+    }
+
     public getAllIndustrial(): Observable<any> {
         return this.httpService.httpGet("../../assets/data/n_states.json").pipe(
             map(response => {

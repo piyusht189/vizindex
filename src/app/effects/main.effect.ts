@@ -42,6 +42,28 @@ export class MainEffects {
     );
 
     @Effect()
+    public getAllCovidGraph$: Observable<Action> = this.actions$.pipe(
+        ofType(ProjectActionTypes.GetCovidGraphData),
+        map((action: ProjectActions.GetCovidGraphData) => action),
+        switchMap(payload => {
+            return this.projectService.getAllCovidGraph();
+        }),
+        map(response => {
+            //this.spinner.hide()
+            if(response){
+                if(response['response']){
+                    if(response.response.length){
+                        return new ProjectActions.GetCovidGraphDataSuccess(response['response']);
+                    }
+                }
+                
+            }
+            this.notify.onError("Error", "CORS issue or File Missing");
+            return new ProjectActions.GetCovidGraphDataFailed(response['response']);
+        })
+    );
+
+    @Effect()
     public getAllIndustrial$: Observable<Action> = this.actions$.pipe(
         ofType(ProjectActionTypes.GetIndustriesData),
         map((action: ProjectActions.GetIndustriesData) => action),

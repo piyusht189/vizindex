@@ -28,20 +28,9 @@ import { Subscription } from 'rxjs';
 import { statesData } from './statesData';
 import { state_mapper } from './state_mapper';
 import { date_mapper } from './date_mapper';
-
-export type ChartOptions = {
-  series: ApexAxisChartSeries;
-  chart: ApexChart;
-  xaxis: ApexXAxis;
-  stroke: ApexStroke;
-  dataLabels: ApexDataLabels;
-  markers: ApexMarkers;
-  colors: string[];
-  yaxis: ApexYAxis;
-  grid: ApexGrid;
-  legend: ApexLegend;
-  title: ApexTitleSubtitle;
-};
+import { ChartOptions, ChartDataSets } from 'chart.js';
+import { ThemeService, Label, Color } from 'ng2-charts';
+var Theme = 'light-theme';
 declare var $: any;
 var contxt
 var geojson;
@@ -65,7 +54,6 @@ export class AppComponent implements OnInit, AfterViewInit{
     L.latLng(45.023476, -55.705283), 
   );
   @ViewChild("chart") chart: ChartComponent;
-  public chartOptions: Partial<ChartOptions>;
   selected_state1 = {Key: '', Desc: ''};
   selected_state2 = {Key: '', Desc: ''};
   selected_industries = {Key: '', Desc: ''};
@@ -98,17 +86,17 @@ export class AppComponent implements OnInit, AfterViewInit{
     allowSearchFilter: true
   };
   height = 0
-
+  only_covid_data = [{quarter: '2020:Q1', total_positive: 196848, total_hospitalized: 23782, total_deaths: 4330},
+  {quarter: '2020:Q2', total_positive: 2426176, total_hospitalized: 215975, total_deaths: 115924},
+  {quarter: '2020:Q3', total_positive: 4746926, total_hospitalized: 185479, total_deaths: 83156},
+  {quarter: '2020:Q4', total_positive: 15017672, total_hospitalized: 500636, total_deaths: 253646},
+  {quarter: '2021:Q1', total_positive: 9917467, total_hospitalized: 286824, total_deaths: 158177}]
   slider_value: number = 15;
   options: Options = {
     floor: 0,
     ceil: 16,
     showTicksValues: true,
     stepsArray: [
-      {value: 1, legend: '<span class="legend1">Q1</span><br><span class="legend2">2017<span>'},
-      {value: 2, legend: '<span class="legend1">Q2</span><br><span class="legend2">2017<span>'},
-      {value: 3, legend: '<span class="legend1">Q3</span><br><span class="legend2">2017<span>'},
-      {value: 4, legend: '<span class="legend1">Q4</span><br><span class="legend2">2017<span>'},
       {value: 5, legend: '<span class="legend1">Q1</span><br><span class="legend2">2018<span>'},
       {value: 6, legend: '<span class="legend1">Q2</span><br><span class="legend2">2018<span>'},
       {value: 7, legend: '<span class="legend1">Q3</span><br><span class="legend2">2018<span>'},
@@ -125,10 +113,6 @@ export class AppComponent implements OnInit, AfterViewInit{
   };
 
   slider_vals = {
-    1: "2017:Q1",
-    2: "2017:Q2",
-    3: "2017:Q3",
-    4: "2017:Q4",
     5: "2018:Q1",
     6: "2018:Q2",
     7: "2018:Q3",
@@ -159,12 +143,52 @@ export class AppComponent implements OnInit, AfterViewInit{
 
   projection_type = "c";
   covid_data_all = [];
+  covid_data_graph_all = [];
   f_time = 1;
   exceptions = ['District of Columbia', 'New England', 'Mideast', 'Great Lakes', 'Plains', 'Southeast', 'Southwest', 'Rocky Mountain', 'Far West', 'Alaska', 'Hawaii']
-  constructor(public rootstore: Store<RootReducer.PState>,private modalService: NgbModal, public http: HttpClient, public notify: notifyService, public spinner: NgxSpinnerService){
+
+
+  lineChartData: ChartDataSets[] = [
+   
+  ];
+  lineChartData1: ChartDataSets[] = [
+   
+  ];
+  lineChartLabels: Label[] = [];
+  lineChartLabels1: Label[] = [];
+  lineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false
+  };
+  lineChartColors: Color[] = [
+    {
+      borderColor: '#0e6b80',
+      backgroundColor: '#0e6b80',
+    },
+    {
+      borderColor: '#6ebacc',
+      backgroundColor: '#6ebacc'
+    },
+    {
+      borderColor: '#ff2e2e',
+      backgroundColor: '#ff2e2e'
+    },
+    {
+      borderColor: '#ff8680',
+      backgroundColor: '#ff8680'
+    }
+    
+  ];
+
+  public lineChartLegend = true;
+  public lineChartType = 'line';
+  public lineChartPlugins = [];
+
+  constructor( public rootstore: Store<RootReducer.PState>,private modalService: NgbModal, public http: HttpClient, public notify: notifyService, public spinner: NgxSpinnerService){
     contxt = this;
     this.spinner.show();
     this.rootstore.dispatch(new ProjectActions.GetCovidData());
+    this.rootstore.dispatch(new ProjectActions.GetCovidGraphData());
     this.rootstore.dispatch(new ProjectActions.GetIndustriesData());
 
   
@@ -226,7 +250,45 @@ export class AppComponent implements OnInit, AfterViewInit{
               
           }
       });
+
+      this.rootstore
+      .select(state => state.covid_graph)
+      .subscribe(data => {
+          if(data.length){
+
+              //Map States
+              let covid_state_changed = data.map(element => {
+                      let assigner = JSON.parse(JSON.stringify(element)); 
+                      assigner['state'] = state_mapper[element.state];
+                      return assigner;
+              });
+
+
+              this.covid_data_graph_all = covid_state_changed.filter(e => e['state']);
+              
+          }
+      });
+
+      this.showOnlyCovidGraph();
+
     
+  }
+  showOnlyCovidGraph(){
+    let labels = this.only_covid_data.map(e => e['quarter']);
+    let total_positives = this.only_covid_data.map(e => e['total_positive']);
+    let total_hospitalized = this.only_covid_data.map(e => e['total_hospitalized']);
+    let total_deaths = this.only_covid_data.map(e => e['total_deaths']);
+     
+                    this.lineChartData1 = [
+                      { data: total_positives, label: 'Total Positive Case US'},
+                     // { data: total_hospitalized, label: "Total  Hospitalized", fill: false},
+                     // { data: total_deaths, label: 'Total Deaths', fill: false}
+                    ];
+                    this.lineChartLabels1 = labels;
+                    //Enable Slider
+                    this.showGraph = false;
+                  
+
   }
   mergeArrayObjects(arr1,arr2){
   return arr1.map((item,i)=>{
@@ -236,7 +298,8 @@ export class AppComponent implements OnInit, AfterViewInit{
      }
   })
 }
-  ngOnInit(){    
+  ngOnInit(){   
+   
   }
   calculateCovid(arr?){
     let yearquarter = this.slider_vals[this.slider_value];
@@ -283,75 +346,7 @@ export class AppComponent implements OnInit, AfterViewInit{
   ngAfterViewInit(){
     this.initMap();
     this.height = $('.graphdiv').height();
-  
-    this.chartOptions = {
-      series: [
-        {
-          name: "High - 2018",
-          data: [28, 29, 33, 36, 32, 32, 33]
-        },
-        {
-          name: "Low - 2020",
-          data: [12, 11, 14, 18, 17, 13, 13]
-        }
-      ],
-      chart: {
-        height: this.height-20,
-        type: "line",
-        dropShadow: {
-          enabled: true,
-          color: "#000",
-          top: 18,
-          left: 7,
-          blur: 10,
-          opacity: 0.2
-        },
-        toolbar: {
-          show: false
-        }
-      },
-      colors: ["#77B6EA", "#545454"],
-      dataLabels: {
-        enabled: true
-      },
-      stroke: {
-        curve: "smooth"
-      },
-      title: {
-        text: "Alabama Vs Texas",
-        align: "center"
-      },
-      grid: {
-        borderColor: "#e7e7e7",
-        row: {
-          colors: ["#f3f3f3", "transparent"], // takes an array which will be repeated on columns
-          opacity: 0.5
-        }
-      },
-      markers: {
-        size: 1
-      },
-      xaxis: {
-        categories: ["Q1", "Q2", "Q3", "Q4", "Q1", "Q2", "Q3"],
-        title: {
-          text: "Quarters"
-        }
-      },
-      yaxis: {
-        title: {
-          text: "Dollars"
-        },
-        min: 5,
-        max: 40
-      },
-      legend: {
-        position: "top",
-        horizontalAlign: "right",
-        floating: true,
-        offsetY: -25,
-        offsetX: -5
-      }
-    };
+    
    
   }
   onUserChangeEnd(changeContext: ChangeContext): void {
@@ -366,6 +361,7 @@ export class AppComponent implements OnInit, AfterViewInit{
     this.selected_state1 = {Key: '', Desc: ''};
     this.selected_state2 = {Key: '', Desc: ''};
     this.selected_industries = {Key: '', Desc: ''};
+    this.showGraph = false;
     this.calculateCovid();
 
   }
@@ -385,9 +381,42 @@ export class AppComponent implements OnInit, AfterViewInit{
         console.log("C1", comparee_obj1);
         console.log("C2", comparee_obj2);
         if(comparee_obj1 && comparee_obj2){
-           //Enable Slider
-           this.showGraph = true;
 
+
+          // Show Graph
+          let state1_graph = this.industry_all_data.filter(e => e['GeoName'] == this.state1_compare && e['Description'].trim() == this.industry_compare);
+          let state2_graph = this.industry_all_data.filter(e => e['GeoName'] == this.state2_compare && e['Description'].trim() == this.industry_compare);
+          if(state1_graph.length && state2_graph.length){
+
+                let state1_graph_obj = state1_graph[0];
+                let state1_graph_x = [state1_graph_obj['n2018:Q1'],state1_graph_obj['n2018:Q2'],state1_graph_obj['n2018:Q3'],state1_graph_obj['n2018:Q4'],state1_graph_obj['n2019:Q1'],state1_graph_obj['n2019:Q2'],state1_graph_obj['n2019:Q3'],state1_graph_obj['n2019:Q4'],state1_graph_obj['n2020:Q1'],state1_graph_obj['n2020:Q2'],state1_graph_obj['n2020:Q3']];
+
+                let state2_graph_obj = state2_graph[0];
+                let state2_graph_x = [state2_graph_obj['n2018:Q1'],state2_graph_obj['n2018:Q2'],state2_graph_obj['n2018:Q3'],state2_graph_obj['n2018:Q4'],state2_graph_obj['n2019:Q1'],state2_graph_obj['n2019:Q2'],state2_graph_obj['n2019:Q3'],state2_graph_obj['n2019:Q4'],state2_graph_obj['n2020:Q1'],state2_graph_obj['n2020:Q2'],state2_graph_obj['n2020:Q3']];
+
+                let covid1  = this.covid_data_graph_all.filter(e => e['state'] == this.state1_compare);
+                let covid2  = this.covid_data_graph_all.filter(e => e['state'] == this.state2_compare);
+
+                let covid1_x = [];
+                let covid2_x = [];
+                if(covid1.length && covid2.length){
+                    covid1_x = [0, 0, 0, 0, 0, 0, 0, 0, covid1[0]['positive_n'],covid1[1]['positive_n'],covid1[2]['positive_n']];
+                    covid2_x = [0, 0, 0, 0, 0, 0, 0, 0, covid2[0]['positive_n'],covid2[1]['positive_n'],covid2[2]['positive_n']];
+                    this.lineChartData = [
+                      { data: state1_graph_x, label: this.state1_compare + ' - ' + this.industry_compare , fill: false},
+                      { data: state2_graph_x, label: this.state2_compare + ' - ' + this.industry_compare, fill: false},
+
+                      { data: covid1_x, label: this.state1_compare + ' - Covid', fill: false},
+                      { data: covid2_x, label: this.state2_compare + ' - Covid', fill: false},
+                    ];
+                    this.lineChartLabels = ['2018(Q1)', '2018(Q2)', '2018(Q3)', '2018(Q4)', '2019(Q1)', '2019(Q2)', '2019(Q3)', '2019(Q4)', '2020(Q1)', '2020(Q2)', '2020(Q3)'];
+                    //Enable Slider
+                    this.showGraph = true;
+                }
+
+                
+                
+          }
 
           let prev_quart1 = comparee_obj1[prev + ':' + q_temp[1]];
           let now_quart1 = comparee_obj1[q_temp[0] + ':' + q_temp[1]];
@@ -474,7 +503,7 @@ export class AppComponent implements OnInit, AfterViewInit{
     }else{
       this.f_time = 0;
     }
-
+    console.log("MERZGED DATA", arr);
     if(arr1){
       geojson = L.geoJson(arr, {style: contxt.style_ind, onEachFeature: contxt.onEachFeature}).addTo(this.map);
     }else{

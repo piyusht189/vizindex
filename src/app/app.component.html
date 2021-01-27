@@ -147,21 +147,35 @@
           </div>
       </div>
       <div style="height:calc(40vh - 25px);" class="graphdiv"> 
-          <div id="chart" *ngIf="showGraph && false" style="    width: 100%;
+         <!--img *ngIf="!showGraph" src="../assets/graph_placeholder.gif" style="    height: 100%;
+         margin: auto;
+         width: auto;
+         display: block;"/-->
+         <div id="chart" *ngIf="!showGraph" style="    width: 100%;
+         display: block;">
+               <canvas baseChart width="400" height="400"
+               [datasets]="lineChartData1"
+               [labels]="lineChartLabels1"
+               [options]="lineChartOptions"
+               [colors]="lineChartColors"
+               [legend]="lineChartLegend"
+               [chartType]="lineChartType"
+               [plugins]="lineChartPlugins">
+             </canvas>
+           </div>
+
+
+          <div id="chart" *ngIf="showGraph" style="    width: 100%;
           display: block;">
-              <apx-chart
-                [series]="chartOptions.series"
-                [chart]="chartOptions.chart"
-                [xaxis]="chartOptions.xaxis"
-                [stroke]="chartOptions.stroke"
-                [colors]="chartOptions.colors"
-                [dataLabels]="chartOptions.dataLabels"
-                [legend]="chartOptions.legend"
-                [markers]="chartOptions.markers"
-                [grid]="chartOptions.grid"
-                [yaxis]="chartOptions.yaxis"
-                [title]="chartOptions.title"
-              ></apx-chart>
+                <canvas baseChart width="400" height="400"
+                [datasets]="lineChartData"
+                [labels]="lineChartLabels"
+                [options]="lineChartOptions"
+                [colors]="lineChartColors"
+                [legend]="lineChartLegend"
+                [chartType]="lineChartType"
+                [plugins]="lineChartPlugins">
+              </canvas>
             </div>
       </div>
     </div>
