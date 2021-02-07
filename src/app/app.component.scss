@@ -8,3 +8,13 @@
 .red{
   color: #d03636;
 }
+#control-container {
+  padding: 11110px !important;
+}
+.modal.show .modal-dialog{
+    width: 90% !important;
+    min-width: 90% !important;
+}
+.modal-content{
+  height: 93vh;
+}

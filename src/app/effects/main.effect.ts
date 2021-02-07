@@ -63,6 +63,27 @@ export class MainEffects {
         })
     );
 
+
+    @Effect()
+    public getAllHeatmap$: Observable<Action> = this.actions$.pipe(
+        ofType(ProjectActionTypes.GetHeatmapData),
+        map((action: ProjectActions.GetHeatmapData) => action),
+        switchMap(payload => {
+            return this.projectService.getHeatmapData();
+        }),
+        map(response => {
+            //this.spinner.hide()
+            if(response){
+                if(response['response']){
+                        return new ProjectActions.GetHeatmapDataSuccess(response['response']);
+                }
+                
+            }
+            this.notify.onError("Error", "CORS issue or File Missing");
+            return new ProjectActions.GetHeatmapDataFailed(response['response']);
+        })
+    );
+
     @Effect()
     public getAllIndustrial$: Observable<Action> = this.actions$.pipe(
         ofType(ProjectActionTypes.GetIndustriesData),

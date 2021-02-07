@@ -39,4 +39,14 @@ export class ProjectService {
             })
         );
     }
+
+    public getHeatmapData(): Observable<any> {
+        return this.httpService.httpGet("../../assets/data/csvjson.json").pipe(
+            map(response => {
+                return response;
+            })
+        );
+    }
+
+    
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { IDropdownSettings } from 'ng-multiselect-dropdown';
 import * as L from 'leaflet';
 import { Options, ChangeContext } from '@angular-slider/ngx-slider';
@@ -30,6 +30,10 @@ import { state_mapper } from './state_mapper';
 import { date_mapper } from './date_mapper';
 import { ChartOptions, ChartDataSets } from 'chart.js';
 import { ThemeService, Label, Color } from 'ng2-charts';
+import { FormGroup, FormBuilder, FormControl } from '@angular/forms';
+import { HeatMap, Legend, Tooltip, ILoadedEventArgs, HeatMapTheme } from '@syncfusion/ej2-angular-heatmap';
+import { getDatasource } from './default-data';
+HeatMap.Inject(Tooltip, Legend);
 var Theme = 'light-theme';
 declare var $: any;
 var contxt
@@ -39,7 +43,8 @@ var legend;
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class AppComponent implements OnInit, AfterViewInit{
   private map;
@@ -49,6 +54,9 @@ export class AppComponent implements OnInit, AfterViewInit{
   states2 = [];
   all_states = [];
   industries = [];
+  fg_scale:FormGroup;
+  scales = [{Key: 1, Desc: '0-3 Normalised Scale'}, {Key: 2, Desc: '0-100 Normalised Scale'}]
+  selected_scale = [{Key: 1, Desc: '0-3 Normalised Scale'}];
   maxBounds = L.latLngBounds(
     L.latLng(26.970598, -127.811379), 
     L.latLng(45.023476, -55.705283), 
@@ -59,6 +67,7 @@ export class AppComponent implements OnInit, AfterViewInit{
   selected_industries = {Key: '', Desc: ''};
   dropdownSettings : IDropdownSettings = {
     singleSelection: true,
+    closeDropDownOnSelection: true,
     idField: 'Key',
     textField: 'Desc',
     selectAllText: 'Select All',
@@ -68,6 +77,7 @@ export class AppComponent implements OnInit, AfterViewInit{
   };
   dropdownSettings2 : IDropdownSettings = {
     singleSelection: true,
+    closeDropDownOnSelection: true,
     idField: 'Key',
     textField: 'Desc',
     selectAllText: 'Select All',
@@ -78,12 +88,23 @@ export class AppComponent implements OnInit, AfterViewInit{
 
   dropdownSettings_industries : IDropdownSettings = {
     singleSelection: true,
+    closeDropDownOnSelection: true,
     idField: 'Key',
     textField: 'Desc',
     selectAllText: 'Select All',
     unSelectAllText: 'UnSelect All',
     itemsShowLimit: 1,
     allowSearchFilter: true
+  };
+  dropdownSettings_scale : IDropdownSettings = {
+    singleSelection: true,
+    closeDropDownOnSelection: true,
+    idField: 'Key',
+    textField: 'Desc',
+    selectAllText: 'Select All',
+    unSelectAllText: 'UnSelect All',
+    itemsShowLimit: 1,
+    allowSearchFilter: false
   };
   height = 0
   only_covid_data = [{quarter: '2020:Q1', total_positive: 196848, total_hospitalized: 23782, total_deaths: 4330},
@@ -156,9 +177,43 @@ export class AppComponent implements OnInit, AfterViewInit{
   ];
   lineChartLabels: Label[] = [];
   lineChartLabels1: Label[] = [];
-  lineChartOptions = {
+  graph_labels = {}
+  lineChartOptions_i = {
     responsive: true,
-    maintainAspectRatio: false
+    maintainAspectRatio: false,
+    tooltips: {
+      callbacks: {
+          label: (tooltipItem, data) => {
+              var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+              if (label) {
+                  label += ': ';
+              }
+              label += (Math.round(tooltipItem.yLabel * 100) / 100).toLocaleString();
+              return label;
+          },
+          footer: (tooltipItem, data) => {
+              return "Real Value: " + (this.graph_labels[tooltipItem[0]['value']] ? this.graph_labels[tooltipItem[0]['value']] : "NA");
+          }
+      }
+   }
+  };
+  lineChartOptions_c = {
+    responsive: true,
+    maintainAspectRatio: false,
+    tooltips: {
+      callbacks: {
+          label: (tooltipItem, data) => {
+              var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+              if (label) {
+                  label += ': ';
+              }
+              label += (Math.round(tooltipItem.yLabel * 100) / 100).toLocaleString();
+              return label;
+          }
+      }
+   }
   };
   lineChartColors: Color[] = [
     {
@@ -184,12 +239,58 @@ export class AppComponent implements OnInit, AfterViewInit{
   public lineChartType = 'line';
   public lineChartPlugins = [];
 
-  constructor( public rootstore: Store<RootReducer.PState>,private modalService: NgbModal, public http: HttpClient, public notify: notifyService, public spinner: NgxSpinnerService){
+
+
+
+
+  //Heatmap Variables
+  titleSettings: Object = {
+    text: 'Industrial Heatmap',
+    textStyle: {
+        size: '25px',
+        fontWeight: '500',
+        fontStyle: 'Normal'
+    }
+   };
+    dataSource: Object[] = getDatasource().dataSource;
+    xAxis: Object = {
+        
+    };
+    yAxis: Object = {};
+    cellSettings: Object = {
+      border: {
+          width: 0
+      },
+      textStyle: {
+          color: '#aaa',
+          size: '8px'
+      },
+      format: '{value}'
+  };
+    load(args: ILoadedEventArgs): void {
+        let selectedTheme: string = location.hash.split('/')[1];
+        selectedTheme = selectedTheme ? selectedTheme : 'Material';
+        args.heatmap.theme = <HeatMapTheme>(selectedTheme.charAt(0).toUpperCase() + selectedTheme.slice(1));
+    };
+    heatmap_industries = []
+    heatmap_dates = []
+    heatmap_data = []
+    paletteSettings: Object = {
+      palette: [
+          { startValue: 0, endValue: 3, minColor: '#e3fbff', maxColor: '#00272e' },
+      ],
+      type: 'Gradient'
+  };
+  constructor(private fb: FormBuilder, public rootstore: Store<RootReducer.PState>,private modalService: NgbModal, public http: HttpClient, public notify: notifyService, public spinner: NgxSpinnerService){
     contxt = this;
+    this.fg_scale = new FormGroup({
+      scale_selected: new FormControl([{Key: 1, Desc: '0-3 Normalised Scale'}])
+    });
     this.spinner.show();
     this.rootstore.dispatch(new ProjectActions.GetCovidData());
     this.rootstore.dispatch(new ProjectActions.GetCovidGraphData());
     this.rootstore.dispatch(new ProjectActions.GetIndustriesData());
+    this.rootstore.dispatch(new ProjectActions.GetHeatmapData());
 
   
       this.rootstore
@@ -269,10 +370,61 @@ export class AppComponent implements OnInit, AfterViewInit{
           }
       });
 
+
+      this.rootstore
+      .select(state => state.heatmap)
+      .subscribe(data => {
+          if(data.length){
+
+            let quarters = ['2016:Q1', '2016:Q2', '2016:Q3', '2016:Q4', '2017:Q1', '2017:Q2', '2017:Q3', '2017:Q4', '2018:Q1', '2018:Q2', '2018:Q3', '2018:Q4','2019:Q1', '2019:Q2', '2019:Q3', '2019:Q4','2020:Q1', '2020:Q2', '2020:Q3' ]
+            let industries = []
+            let datas = [];
+            data.forEach(element => {
+              console.log(element['Description']);
+              industries.push(element['Description'])
+              let inner_data = []
+              quarters.forEach(e1 => {
+                inner_data.push(element[e1]) 
+              })
+              datas.push(inner_data);
+              
+            });
+
+              this.heatmap_data = datas
+              this.heatmap_dates = quarters
+              this.heatmap_industries = industries
+              this.xAxis = {
+                labels: this.heatmap_industries,
+                labelRotation: 0,
+             }
+
+              this.yAxis = {
+                labels: this.heatmap_dates 
+            };
+           
+            this.dataSource = datas;
+            
+            console.log(datas, this.dataSource);
+          }
+      });
+
       this.showOnlyCovidGraph();
 
     
   }
+  chunkArray(myArray, chunk_size){
+    var index = 0;
+    var arrayLength = myArray.length;
+    var tempArray = [];
+    
+    for (index = 0; index < arrayLength; index += chunk_size) {
+        let myChunk = myArray.slice(index, index+chunk_size);
+        // Do something if you want with the group
+        tempArray.push(myChunk);
+    }
+
+    return tempArray;
+}
   showOnlyCovidGraph(){
     let labels = this.only_covid_data.map(e => e['quarter']);
     let total_positives = this.only_covid_data.map(e => e['total_positive']);
@@ -280,7 +432,7 @@ export class AppComponent implements OnInit, AfterViewInit{
     let total_deaths = this.only_covid_data.map(e => e['total_deaths']);
      
                     this.lineChartData1 = [
-                      { data: total_positives, label: 'Total Positive Case US'},
+                      { data: total_positives, label: 'Total Active Positive Case US'},
                      // { data: total_hospitalized, label: "Total  Hospitalized", fill: false},
                      // { data: total_deaths, label: 'Total Deaths', fill: false}
                     ];
@@ -299,7 +451,7 @@ export class AppComponent implements OnInit, AfterViewInit{
   })
 }
   ngOnInit(){   
-   
+    
   }
   calculateCovid(arr?){
     let yearquarter = this.slider_vals[this.slider_value];
@@ -323,12 +475,12 @@ export class AppComponent implements OnInit, AfterViewInit{
           let total_recovered = 0;
           let total_positive = 0;
           let total_tests_done = 0;
-          statewise.forEach(e2 => {
-            total_deaths = total_deaths + (e2.death ? e2.death : 0);
-            total_recovered = total_recovered + (e2.recovered ? e2.recovered : 0);
-            total_positive = total_positive + (e2.positive ? e2.positive : 0);
-            total_tests_done = total_tests_done + (e2.totalTestResults ? e2.totalTestResults : 0);
-          });
+          //statewise.forEach(e2 => {
+            total_deaths = statewise[0].death ? statewise[0].death : 0;
+            total_recovered = statewise[0].recovered ? statewise[0].recovered : 0;
+            total_positive = statewise[0].positive ? statewise[0].positive : 0;
+            total_tests_done = statewise[0].totalTestResults ? statewise[0].totalTestResults : 0;
+          //});
           e['properties']['total_deaths'] = total_deaths;
           e['properties']['total_recovered'] = total_recovered;
           e['properties']['total_positive'] = total_positive;
@@ -354,20 +506,22 @@ export class AppComponent implements OnInit, AfterViewInit{
     this.visualize();
   }
   visualize_covid(){
-    this.state1_compare = '';
-    this.state2_compare = '';
-    this.industry_compare = '';
+    //this.state1_compare = '';
+    //this.state2_compare = '';
+    //this.industry_compare = '';
     this.projection_type = 'c';
-    this.selected_state1 = {Key: '', Desc: ''};
-    this.selected_state2 = {Key: '', Desc: ''};
-    this.selected_industries = {Key: '', Desc: ''};
+    //this.selected_state1 = {Key: '', Desc: ''};
+    //this.selected_state2 = {Key: '', Desc: ''};
+    //this.selected_industries = {Key: '', Desc: ''};
     this.showGraph = false;
     this.calculateCovid();
 
   }
   visualize(){
-
+    console.log("Selected Scale", this.selected_scale)
     if(this.checker()){
+      if((this.projection_type == 'c' && !this.showGraph) || (this.projection_type == 'i' && this.showGraph)){
+        this.graph_labels = {};
         this.spinner.show();
         this.state1_compare = this.selected_state1.Key;
         this.state2_compare = this.selected_state2.Key;
@@ -389,10 +543,37 @@ export class AppComponent implements OnInit, AfterViewInit{
           if(state1_graph.length && state2_graph.length){
 
                 let state1_graph_obj = state1_graph[0];
-                let state1_graph_x = [state1_graph_obj['n2018:Q1'],state1_graph_obj['n2018:Q2'],state1_graph_obj['n2018:Q3'],state1_graph_obj['n2018:Q4'],state1_graph_obj['n2019:Q1'],state1_graph_obj['n2019:Q2'],state1_graph_obj['n2019:Q3'],state1_graph_obj['n2019:Q4'],state1_graph_obj['n2020:Q1'],state1_graph_obj['n2020:Q2'],state1_graph_obj['n2020:Q3']];
+
+                let hundert = this.selected_scale[0] ? (this.selected_scale[0].Key == 1 ? false : true) : false;
+                
+                let state1_graph_x = [state1_graph_obj[hundert ? 'nh2018:Q1' : 'n2018:Q1'],state1_graph_obj[hundert ? 'nh2018:Q2' : 'n2018:Q2'],state1_graph_obj[hundert ? 'nh2018:Q3' : 'n2018:Q3'],state1_graph_obj[hundert ? 'nh2018:Q4' : 'n2018:Q4'],state1_graph_obj[hundert ? 'nh2019:Q1' : 'n2019:Q1'],state1_graph_obj[hundert ? 'nh2019:Q2' : 'n2019:Q2'],state1_graph_obj[hundert ? 'nh2019:Q3' : 'n2019:Q3'],state1_graph_obj[hundert ? 'nh2019:Q4' : 'n2019:Q4'],state1_graph_obj[hundert ? 'nh2020:Q1' : 'n2020:Q1'],state1_graph_obj[hundert ? 'nh2020:Q2' : 'n2020:Q2'],state1_graph_obj[hundert ? 'nh2020:Q3' : 'n2020:Q3']];
+
+                this.graph_labels[state1_graph_obj[hundert ? 'nh2018:Q1' : 'n2018:Q1']] = state1_graph_obj[hundert ? 'nh2018:Q1' : '2018:Q1'].toLocaleString();
+                this.graph_labels[state1_graph_obj[hundert ? 'nh2018:Q2' : 'n2018:Q2']] = state1_graph_obj[hundert ? 'nh2018:Q2' : '2018:Q2'].toLocaleString();
+                this.graph_labels[state1_graph_obj[hundert ? 'nh2018:Q3' : 'n2018:Q3']] = state1_graph_obj[hundert ? 'nh2018:Q3' : '2018:Q3'].toLocaleString();
+                this.graph_labels[state1_graph_obj[hundert ? 'nh2018:Q4' : 'n2018:Q4']] = state1_graph_obj[hundert ? 'nh2018:Q4' : '2018:Q4'].toLocaleString();
+                this.graph_labels[state1_graph_obj[hundert ? 'nh2019:Q1' : 'n2019:Q1']] = state1_graph_obj[hundert ? 'nh2019:Q1' : '2019:Q1'].toLocaleString();
+                this.graph_labels[state1_graph_obj[hundert ? 'nh2019:Q2' : 'n2019:Q2']] = state1_graph_obj[hundert ? 'nh2019:Q2' : '2019:Q2'].toLocaleString();
+                this.graph_labels[state1_graph_obj[hundert ? 'nh2019:Q3' : 'n2019:Q3']] = state1_graph_obj[hundert ? 'nh2019:Q3' : '2019:Q3'].toLocaleString();
+                this.graph_labels[state1_graph_obj[hundert ? 'nh2019:Q4' : 'n2019:Q4']] = state1_graph_obj[hundert ? 'nh2019:Q4' : '2019:Q4'].toLocaleString();
+                this.graph_labels[state1_graph_obj[hundert ? 'nh2020:Q1' : 'n2020:Q1']] = state1_graph_obj[hundert ? 'nh2020:Q1' : '2020:Q1'].toLocaleString();
+                this.graph_labels[state1_graph_obj[hundert ? 'nh2020:Q2' : 'n2020:Q2']] = state1_graph_obj[hundert ? 'nh2020:Q2' : '2020:Q2'].toLocaleString();
+                this.graph_labels[state1_graph_obj[hundert ? 'nh2020:Q3' : 'n2020:Q3']] = state1_graph_obj[hundert ? 'nh2020:Q3' : '2020:Q3'].toLocaleString();
 
                 let state2_graph_obj = state2_graph[0];
-                let state2_graph_x = [state2_graph_obj['n2018:Q1'],state2_graph_obj['n2018:Q2'],state2_graph_obj['n2018:Q3'],state2_graph_obj['n2018:Q4'],state2_graph_obj['n2019:Q1'],state2_graph_obj['n2019:Q2'],state2_graph_obj['n2019:Q3'],state2_graph_obj['n2019:Q4'],state2_graph_obj['n2020:Q1'],state2_graph_obj['n2020:Q2'],state2_graph_obj['n2020:Q3']];
+                let state2_graph_x = [state2_graph_obj[hundert ? 'nh2018:Q1' : 'n2018:Q1'],state2_graph_obj[hundert ? 'nh2018:Q2' : 'n2018:Q2'],state2_graph_obj[hundert ? 'nh2018:Q3' : 'n2018:Q3'],state2_graph_obj[hundert ? 'nh2018:Q4' : 'n2018:Q4'],state2_graph_obj[hundert ? 'nh2019:Q1' : 'n2019:Q1'],state2_graph_obj[hundert ? 'nh2019:Q2' : 'n2019:Q2'],state2_graph_obj[hundert ? 'nh2019:Q3' : 'n2019:Q3'],state2_graph_obj[hundert ? 'nh2019:Q4' : 'n2019:Q4'],state2_graph_obj[hundert ? 'nh2020:Q1' : 'n2020:Q1'],state2_graph_obj[hundert ? 'nh2020:Q2' : 'n2020:Q2'],state2_graph_obj[hundert ? 'nh2020:Q3' : 'n2020:Q3']];
+
+                this.graph_labels[state2_graph_obj[hundert ? 'nh2018:Q1' : 'n2018:Q1']] = state2_graph_obj[hundert ? 'nh2018:Q1' : '2018:Q1'].toLocaleString();
+                this.graph_labels[state2_graph_obj[hundert ? 'nh2018:Q2' : 'n2018:Q2']] = state2_graph_obj[hundert ? 'nh2018:Q2' : '2018:Q2'].toLocaleString();
+                this.graph_labels[state2_graph_obj[hundert ? 'nh2018:Q3' : 'n2018:Q3']] = state2_graph_obj[hundert ? 'nh2018:Q3' : '2018:Q3'].toLocaleString();
+                this.graph_labels[state2_graph_obj[hundert ? 'nh2018:Q4' : 'n2018:Q4']] = state2_graph_obj[hundert ? 'nh2018:Q4' : '2018:Q4'].toLocaleString();
+                this.graph_labels[state2_graph_obj[hundert ? 'nh2019:Q1' : 'n2019:Q1']] = state2_graph_obj[hundert ? 'nh2019:Q1' : '2019:Q1'].toLocaleString();
+                this.graph_labels[state2_graph_obj[hundert ? 'nh2019:Q2' : 'n2019:Q2']] = state2_graph_obj[hundert ? 'nh2019:Q2' : '2019:Q2'].toLocaleString();
+                this.graph_labels[state2_graph_obj[hundert ? 'nh2019:Q3' : 'n2019:Q3']] = state2_graph_obj[hundert ? 'nh2019:Q3' : '2019:Q3'].toLocaleString();
+                this.graph_labels[state2_graph_obj[hundert ? 'nh2019:Q4' : 'n2019:Q4']] = state2_graph_obj[hundert ? 'nh2019:Q4' : '2019:Q4'].toLocaleString();
+                this.graph_labels[state2_graph_obj[hundert ? 'nh2020:Q1' : 'n2020:Q1']] = state2_graph_obj[hundert ? 'nh2020:Q1' : '2020:Q1'].toLocaleString();
+                this.graph_labels[state2_graph_obj[hundert ? 'nh2020:Q2' : 'n2020:Q2']] = state2_graph_obj[hundert ? 'nh2020:Q2' : '2020:Q2'].toLocaleString();
+                this.graph_labels[state2_graph_obj[hundert ? 'nh2020:Q3' : 'n2020:Q3']] = state2_graph_obj[hundert ? 'nh2020:Q3' : '2020:Q3'].toLocaleString();
 
                 let covid1  = this.covid_data_graph_all.filter(e => e['state'] == this.state1_compare);
                 let covid2  = this.covid_data_graph_all.filter(e => e['state'] == this.state2_compare);
@@ -400,8 +581,27 @@ export class AppComponent implements OnInit, AfterViewInit{
                 let covid1_x = [];
                 let covid2_x = [];
                 if(covid1.length && covid2.length){
-                    covid1_x = [0, 0, 0, 0, 0, 0, 0, 0, covid1[0]['positive_n'],covid1[1]['positive_n'],covid1[2]['positive_n']];
-                    covid2_x = [0, 0, 0, 0, 0, 0, 0, 0, covid2[0]['positive_n'],covid2[1]['positive_n'],covid2[2]['positive_n']];
+                  
+
+
+
+
+                    covid1_x = [0, 0, 0, 0, 0, 0, 0, 0, covid1[0][hundert ? 'positive_nh' : 'positive_n'],covid1[1][hundert ? 'positive_nh' : 'positive_n'],covid1[2][hundert ? 'positive_nh' : 'positive_n']];
+                    covid2_x = [0, 0, 0, 0, 0, 0, 0, 0, covid2[0][hundert ? 'positive_nh' : 'positive_n'],covid2[1][hundert ? 'positive_nh' : 'positive_n'],covid2[2][hundert ? 'positive_nh' : 'positive_n']];
+
+                    this.graph_labels[covid1[0][hundert ? 'positive_nh' : 'positive_n']]  = covid1[0]['positive'];
+                    this.graph_labels[covid1[1][hundert ? 'positive_nh' : 'positive_n']]  = covid1[1]['positive'];
+                    this.graph_labels[covid1[2][hundert ? 'positive_nh' : 'positive_n']]  = covid1[2]['positive'];
+                   
+                    this.graph_labels[covid2[0][hundert ? 'positive_nh' : 'positive_n']]  = covid2[0]['positive'];
+                    this.graph_labels[covid2[1][hundert ? 'positive_nh' : 'positive_n']]  = covid2[1]['positive'];
+                    this.graph_labels[covid2[2][hundert ? 'positive_nh' : 'positive_n']]  = covid2[2]['positive'];
+
+
+
+
+
+
                     this.lineChartData = [
                       { data: state1_graph_x, label: this.state1_compare + ' - ' + this.industry_compare , fill: false},
                       { data: state2_graph_x, label: this.state2_compare + ' - ' + this.industry_compare, fill: false},
@@ -412,6 +612,14 @@ export class AppComponent implements OnInit, AfterViewInit{
                     this.lineChartLabels = ['2018(Q1)', '2018(Q2)', '2018(Q3)', '2018(Q4)', '2019(Q1)', '2019(Q2)', '2019(Q3)', '2019(Q4)', '2020(Q1)', '2020(Q2)', '2020(Q3)'];
                     //Enable Slider
                     this.showGraph = true;
+
+                    setTimeout(() => {
+                      if(!this.selected_scale.length){
+                        this.fg_scale = this.fb.group({
+                          scale_selected: [{Key: 1, Desc: '0-3 Normalised Scale'}]
+                        });
+                      }
+                    },500)
                 }
 
                 
@@ -433,6 +641,7 @@ export class AppComponent implements OnInit, AfterViewInit{
           this.spinner.hide();
           this.notify.onError("Error", "Something wrong with the data!");
         }
+       }
       }else{
         this.calculateCovid();
       }     
@@ -470,6 +679,15 @@ export class AppComponent implements OnInit, AfterViewInit{
   onItemSelect_industries(item: any) {
     console.log(item);
     this.selected_industries = item;
+  }
+  onItemSelect_scale(item: any) {
+    console.log(item);
+    this.selected_scale = [item];
+    this.fg_scale = this.fb.group({
+      scale_selected: this.selected_scale
+    });
+    this.visualize();
+    //this.selected_industries = item;
   }
   initMap(): void {
     this.map = L.map('map', {
@@ -524,13 +742,13 @@ export class AppComponent implements OnInit, AfterViewInit{
     if(arr1){
       info.update = function (props) {
         this._div.innerHTML = ('<h4>US Industrial Sectors & Covid Data</h4><h6>For ' + contxt.selected_industries.Key + '</h6>') +  (props ?
-            '<b><h6>State: ' + props.name + '</h6></b>' + '<strong>$' + parseFloat(''+props.revenue).toFixed(2).toLocaleString() + ' net worth.</strong><br>' + props.total_positive.toLocaleString() + ' total positive cases.<br>' + props.total_deaths.toLocaleString() + ' total deaths.<br>' + props.total_recovered.toLocaleString() + ' total recoveries.<br>' + props.total_tests_done.toLocaleString() + ' total tests done.<br>'
+            '<b><h6>State: ' + props.name + '</h6></b>' + '<strong>$' + parseFloat(''+props.revenue).toFixed(2).toLocaleString() + ' net worth.</strong><br>' + props.total_positive.toLocaleString() + ' total active positive cases.<br>' + props.total_deaths.toLocaleString() + ' total deaths.<br>' + props.total_recovered.toLocaleString() + ' total recoveries.<br>' + props.total_tests_done.toLocaleString() + ' total tests done.<br>'
             : 'Hover over a state');
        };
     }else{
       info.update = function (props) {
         this._div.innerHTML = ('<h4>US Quarterwise Covid Data</h4>') +  (props ?
-            '<b><h6>State: ' + props.name + '</h6></b>' + props.total_positive.toLocaleString() + ' total positive cases.<br>' + props.total_deaths.toLocaleString() + ' total deaths.<br>' + props.total_recovered.toLocaleString() + ' total recoveries.<br>' + props.total_tests_done.toLocaleString() + ' total tests done.<br>'
+            '<b><h6>State: ' + props.name + '</h6></b>' + props.total_positive.toLocaleString() + ' total active positive cases.<br>' + props.total_deaths.toLocaleString() + ' total deaths.<br>' + props.total_recovered.toLocaleString() + ' total recoveries.<br>' + props.total_tests_done.toLocaleString() + ' total tests done.<br>'
             : 'Hover over a state');
       };
     }
@@ -548,7 +766,7 @@ export class AppComponent implements OnInit, AfterViewInit{
           labels = [];
       }else{
           var div = L.DomUtil.create('div', 'info legend'),
-          grades = [0, 10000, 30000, 50000, 70000, 1000000, 3000000, 5000000, 7000000, 10000000, 20000000, 30000000],
+          grades = [0, 10000, 30000, 50000, 70000, 1000000, 3000000, 5000000, 7000000],
           labels = [];
       }
       // loop through our density intervals and generate a label with a colored square for each interval
@@ -578,21 +796,18 @@ export class AppComponent implements OnInit, AfterViewInit{
     legend.addTo(contxt.map);
   }
   getColor(d) {
-    return d > 30000000 ? '#003945' :
-           d > 20000000  ? '#015c6e' :
-           d > 10000000  ? '#01738a' :
-           d > 7000000  ? '#008aa6' :
-           d > 5000000  ? '#029ebd' :
-           d > 3000000   ? '#04b1d4' :
-           d > 1000000   ? '#19c1e3' :
-           d > 700000   ? '#39cfed' :
-           d > 500000   ? '#39deed' :
-           d > 300000   ? '#58e8f5' :
-           d > 100000   ? '#75e6f0' :
-           d > 70000   ? '#75eef0' :
-           d > 50000   ? '#84f3f5' :
-           d > 30000   ? '#95f3f5' :
-           d > 10000   ? '#b3fdff' :
+    return d > 7000000  ? '#003945' :
+           d > 5000000  ? '#015c6e' :
+           d > 3000000   ? '#01738a' :
+           d > 1000000   ? '#008aa6' :
+           d > 700000   ? '#029ebd' :
+           d > 500000   ? '#04b1d4' :
+           d > 300000   ? '#19c1e3' :
+           d > 100000   ? '#39cfed' :
+           d > 70000   ? '#39deed' :
+           d > 50000   ? '#58e8f5' :
+           d > 30000   ? '#75e6f0' :
+           d > 10000   ? '#75eef0' :
                       '#d1fdff';
   }
   getColor_Ind(d) {

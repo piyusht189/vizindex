@@ -9,6 +9,7 @@ import { localStorageSync } from 'ngrx-store-localstorage';
 import * as fromCovid from "./reducers/covid";
 import * as fromCovidGraph from "./reducers/covid_graph";
 import * as fromIndustrial from "./reducers/industrial";
+import * as fromHeatmap from "./reducers/heatmap";
 
 export const FEATURE_NAME = '';
 const STORE_KEYS_TO_PERSIST = [];
@@ -16,13 +17,15 @@ const STORE_KEYS_TO_PERSIST = [];
 export interface PState {
     covid_data: any,
     industrial_data: any,
-    covid_graph: any
+    covid_graph: any,
+    heatmap: any
 }
 
 export const appReducers: ActionReducerMap<PState> = {
     covid_data: fromCovid.reducer,
     industrial_data: fromIndustrial.reducer,
-    covid_graph: fromCovidGraph.reducer
+    covid_graph: fromCovidGraph.reducer,
+    heatmap: fromHeatmap.reducer
 };
 //export function loggerReducer(reducer: ActionReducer<State>): any {
     // default, no options

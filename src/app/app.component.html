@@ -16,7 +16,7 @@
     font-weight: 400;">Viz Index</a>
   </div>
   <div class="col-12 col-12 nopadding" style="display: flex;height: calc(100vh - 50px);">
-    <div style="    height: calc(100vh - 50px);
+    <div style="    height: calc(100vh - 50px);overflow-y: auto;
     background: #ffffff;
     border: 2px solid #53c2dc;" class="col-3 col-3 nopadding">
         <a href="#" class="text-decoration-none" style="display: block;
@@ -26,7 +26,7 @@
         font-weight: 400;
         text-align: center;
         margin-top: 15px;">Visualization Input</a>
-
+    <form>
         <ng-multiselect-dropdown
         [placeholder]="'Select State 1'"
         [settings]="dropdownSettings"
@@ -59,7 +59,7 @@
         margin: 20px 0px;"
         >
         </ng-multiselect-dropdown>
-
+      </form>
 
         <button (click)="visualize()" type="button" class="btn btn-primary" style="    margin: auto;
         display: block;
@@ -75,6 +75,35 @@
         width: 86%;    margin-top: 20px;
     padding: 10px;">Full Overview Heatmap Visualization</button>
 
+      <div  *ngIf="showGraph">
+        <div style="border: 1px solid #0e6b8094;
+        width: 93%;
+        margin: auto;
+        margin-top: 20px;"></div>
+
+        <a href="#" class="text-decoration-none" style="display: block;
+        margin: auto;
+        font-size: 1em;
+        color: #0e6b80;
+        font-weight: 400;
+        text-align: center;
+        margin-top: 15px;">Line Chart Scale Options:</a>
+        <form [formGroup]="fg_scale">
+        <ng-multiselect-dropdown
+        name="scale_selected"
+        [formControl]="fg_scale.controls['scale_selected']"
+        [placeholder]="'Select Scale'"
+        [settings]="dropdownSettings_scale"
+        [(ngModel)] = 'selected_scale'
+        [data]="scales"
+        (onSelect)="onItemSelect_scale($event)"
+        style="    display: block;
+        padding: 0px 30px;
+        margin: 20px 0px;"
+        >
+        </ng-multiselect-dropdown>
+      </form>
+      </div>
     </div>
     <div class="col-lg-9 col-9 nopadding" style="height: calc(100vh - 50px);">
       <div style="height:calc(60vh - 25px);border-bottom: 3px solid #54c3dc;position: relative;"> 
@@ -108,7 +137,7 @@
           </div-->
 
 
-          <div *ngIf="state1_compare && state2_compare && industry_compare" style="    position: absolute;
+          <div *ngIf="state1_compare && state2_compare && industry_compare && showGraph" style="position: absolute;
           top: 90px;
           z-index: 999;
           left: 0;
@@ -156,7 +185,7 @@
                <canvas baseChart width="400" height="400"
                [datasets]="lineChartData1"
                [labels]="lineChartLabels1"
-               [options]="lineChartOptions"
+               [options]="lineChartOptions_c"
                [colors]="lineChartColors"
                [legend]="lineChartLegend"
                [chartType]="lineChartType"
@@ -170,7 +199,7 @@
                 <canvas baseChart width="400" height="400"
                 [datasets]="lineChartData"
                 [labels]="lineChartLabels"
-                [options]="lineChartOptions"
+                [options]="lineChartOptions_i"
                 [colors]="lineChartColors"
                 [legend]="lineChartLegend"
                 [chartType]="lineChartType"
@@ -185,13 +214,20 @@
 
 <ng-template #mymodal let-modal>
   <div class="modal-header">
-    <h4 class="modal-title" id="modal-basic-title">Overview Multi-Visualization (Currently Dummy)</h4>
+    <h4 class="modal-title" id="modal-basic-title">Overview Multi-Visualization</h4>
     <button type="button" class="close" style="outline: none;" aria-label="Close" (click)="modal.dismiss('Cross click')">
       <span aria-hidden="true">×</span>
     </button>
   </div>
   <div class="modal-body">
-    <img src="../assets/WhatsApp Image 2020-12-09 at 4.21.24 PM.jpeg">
+      <div class="control-section">
+          <div style='text-align: center'>
+              <ejs-heatmap  style="display:block;" [titleSettings]='titleSettings' [dataSource]='dataSource' [xAxis]='xAxis'
+                  [yAxis]='yAxis' (load)='load($event)'  [cellSettings]='cellSettings' [paletteSettings]='paletteSettings' >
+              </ejs-heatmap>
+          </div>
+      </div>
+    <!--img src="../assets/WhatsApp Image 2020-12-09 at 4.21.24 PM.jpeg"-->
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-outline-dark" (click)="modal.close()">Dismiss</button>

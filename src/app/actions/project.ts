@@ -13,7 +13,9 @@ export enum ProjectActionTypes {
     GetIndustriesDataSuccess = "GET_INDUSTRIES_DATA_SUCCESS",
     GetIndustriesDataFailed = "GET_INDUSTRIES_DATA_FAILED",
 
-   
+    GetHeatmapData = "GET_HEATMAP_DATA",
+    GetHeatmapDataSuccess = "GET_HEATMAP_DATA_SUCCESS",
+    GetHeatmapDataFailed = "GET_HEATMAP_DATA_FAILED"
 
 }
 
@@ -58,6 +60,19 @@ export class GetIndustriesDataFailed implements Action {
     constructor(public payload: any) { }
 }
 
+export class GetHeatmapData implements Action {
+    readonly type = ProjectActionTypes.GetHeatmapData;
+    constructor() { }
+}
+export class GetHeatmapDataSuccess implements Action {
+    readonly type = ProjectActionTypes.GetHeatmapDataSuccess;
+    constructor(public payload: any) { }
+}
+export class GetHeatmapDataFailed implements Action {
+    readonly type = ProjectActionTypes.GetHeatmapDataFailed;
+    constructor(public payload: any) { }
+}
+
 
 
 
@@ -72,3 +87,6 @@ export type ProjectActions =
     | GetCovidGraphData
     | GetCovidGraphDataSuccess
     | GetCovidGraphDataFailed
+    | GetHeatmapData
+    | GetHeatmapDataSuccess
+    | GetHeatmapDataFailed

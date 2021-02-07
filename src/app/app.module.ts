@@ -21,6 +21,8 @@ import { appReducers } from "./app.reducers";
 import { VizIndexHttpService } from './services/vizindex-http.service';
 import { ProjectService } from './services/project_service';
 import { ChartsModule } from 'ng2-charts';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { HeatMapAllModule } from '@syncfusion/ej2-angular-heatmap';
 @NgModule({
   declarations: [
     AppComponent
@@ -35,6 +37,9 @@ import { ChartsModule } from 'ng2-charts';
     NgxSpinnerModule,
     BrowserAnimationsModule,
     ChartsModule,
+    ReactiveFormsModule,
+    FormsModule,
+    HeatMapAllModule,
     NgMultiSelectDropDownModule.forRoot(),
     EffectsModule.forRoot(EFFECTS),
     StoreModule.forRoot(appReducers),
