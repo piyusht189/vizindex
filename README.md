@@ -4,8 +4,16 @@ Covid19 Impact on Industries
 
 Giray Tandogan, Mohamed Aymane Zizi (@aymanezizi) , Piyush Hemant Talele (@piyusht189)
 
+## Idea 
+Covid-19 spread in the whole world, many industrial departments suffered from loses, others got much richer, thus governments policies differentiate to support the economy and have less damage while looking for a vaccine.
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.0.2.
+How can we visualize this in better way ? 
+
+## Use cases 
+* See 2 state’s industrial data, along with covid data, aligned with time.
+* See the heatmap of general USA industrial market.
+* Ability to compare states and see the effects of corona in each of them, and within comparison between them.
+* See the effects of covid on state wise industrial sector (flow time)
 
 ## Demo
 ![alt text](https://raw.githubusercontent.com/piyusht189/vizindex/main/VizIndex.png)
@@ -36,3 +44,5 @@ Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protrac
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.0.2.
