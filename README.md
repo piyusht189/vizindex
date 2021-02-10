@@ -1,11 +1,17 @@
 # Team4 - Vizindex
 
-Covid19 Impact on Economy
+Covid19 Impact on Industries
 
-Giray Tandogan, Mohamed Aymane Zizi, Piyush Hemant Talele
+Giray Tandogan, Mohamed Aymane Zizi (@aymanezizi) , Piyush Hemant Talele (@piyusht189)
 
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.0.2.
+
+## Demo
+![alt text](https://raw.githubusercontent.com/piyusht189/vizindex/main/VizIndex.png)
+
+## Heatmap
+![alt text](https://raw.githubusercontent.com/piyusht189/vizindex/main/Vizindex_heatmap.png)
 
 ## Development server
 
