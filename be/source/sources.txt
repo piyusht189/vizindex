@@ -1,0 +1,2 @@
+https://covidtracking.com/data/download
+https://www.bea.gov/data/gdp/gdp-state
