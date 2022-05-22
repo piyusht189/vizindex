@@ -742,7 +742,7 @@ export class AppComponent implements OnInit, AfterViewInit{
     if(arr1){
       info.update = function (props) {
         this._div.innerHTML = ('<h4>US Industrial Sectors & Covid Data</h4><h6>For ' + contxt.selected_industries.Key + '</h6>') +  (props ?
-            '<b><h6>State: ' + props.name + '</h6></b>' + '<strong>$' + parseFloat(''+props.revenue).toFixed(2).toLocaleString() + ' net worth.</strong><br>' + props.total_positive.toLocaleString() + ' total active positive cases.<br>' + props.total_deaths.toLocaleString() + ' total deaths.<br>' + props.total_recovered.toLocaleString() + ' total recoveries.<br>' + props.total_tests_done.toLocaleString() + ' total tests done.<br>'
+            '<b><h6>State: ' + props.name + '</h6></b>' + '<strong>$' + parseFloat(''+props.revenue).toFixed(2).toLocaleString() + ' million net worth.</strong><br>' + props.total_positive.toLocaleString() + ' total active positive cases.<br>' + props.total_deaths.toLocaleString() + ' total deaths.<br>' + props.total_recovered.toLocaleString() + ' total recoveries.<br>' + props.total_tests_done.toLocaleString() + ' total tests done.<br>'
             : 'Hover over a state');
        };
     }else{
@@ -773,7 +773,7 @@ export class AppComponent implements OnInit, AfterViewInit{
       for (var i = 0; i < grades.length; i++) {
         if(i == 0){
           if(arr1){
-            div.innerHTML += '<strong>Net worth in dollars</strong><br>';
+            div.innerHTML += '<strong>Net worth in million dollars</strong><br>';
           }else{
             div.innerHTML += '<strong>Positive Cases</strong><br>';
           }
