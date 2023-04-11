@@ -6,7 +6,7 @@ Some CSS issue is in the live demo.
 
 Covid19 Impact on Industries
 
-Giray Tandogan, Mohamed Aymane Zizi (@aymanezizi) , Piyush Hemant Talele (@piyusht189)
+Piyush Hemant Talele (@piyusht189)
 
 ## Idea 
 Covid-19 spread in the whole world, many industrial departments suffered from loses, others got much richer, thus governments policies differentiate to support the economy and have less damage while looking for a vaccine.
